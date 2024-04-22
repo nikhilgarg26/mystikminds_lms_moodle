@@ -1,3 +1,3 @@
-## Mystik Minds Frontend
+# Mystik Minds Frontend
 
-# Steps to start the server in your machine
+## Steps to start the server in your machine
