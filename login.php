@@ -1,57 +1,13 @@
 <?php
 session_start();
 
-if (isset($_SESSION["logged_in"]) && $_SESSION["logged_in"] === true){
+if (isset($_SESSION["logged_in"]) && $_SESSION["logged_in"] === true) {
     header("Location: index.php");
 }
 
 include "db_connection.php";
 
 // Handle form submission
-if (isset($_POST['login'])) {
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
-
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-
-    if ($user && password_verify($password, $user['password'])) {
-        // Start session and store user info
-        $_SESSION['user_id'] = $user['user_id'];
-        $_SESSION['first_name'] = $user['first_name'];
-        $_SESSION['last_name'] = $user['last_name'];
-        $_SESSION['email'] = $user['email'];
-        $_SESSION['role'] = $user['role'];
-        $_SESSION['my_courses'] = $user['my_courses'];
-        $_SESSION['logged_in'] = true;
-        $_SESSION['courses_enrolled'] = [];
-
-        $sql = "SELECT course_id FROM mycourses WHERE user_id = ?";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$_SESSION['user_id']]);
-        $results = $stmt->fetchAll();
-
-        if ($results) {
-            // Initialize the session array to hold the column values
-
-            foreach ($results as $row) {
-                // Replace 'column_name' with the name of the column you're interested in
-                $_SESSION['courses_enrolled'][] = $row['course_id'];
-            }
-        }
-
-        header("Location: index.php");
-        exit();
-    } else {
-        echo "<div class='message'>
-                  <p>Wrong Credentials</p>
-                  </div><br>";
-
-        echo "<a href='login.php' class='btn btn-primary px-5'>Login Again</a>";
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -214,12 +170,61 @@ if (isset($_POST['login'])) {
 
     <div class="form-container text-center bg-secondary">
         <form action="" method="POST" enctype="multipart/form-data">
-            <H2>Welcome to Mystik Minds</h2>
-            <h3>Login Now</h3>
-            <input type="email" name="email" placeholder="Enter Email" class="box" required><br><br>
-            <input type="password" name="password" placeholder="Enter Password" class="box" required><br><br>
-            <input type="submit" name="login" value="login now" class="btn btn-primary">
-            <p>don't have an account? <a href="register.php">Register Now</a></p>
+            <?php
+            if (isset($_POST['login'])) {
+                $email = trim($_POST['email']);
+                $password = $_POST['password'];
+
+                $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
+                $stmt->execute([$email]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+
+                if ($user && password_verify($password, $user['password'])) {
+                    // Start session and store user info
+                    $_SESSION['user_id'] = $user['user_id'];
+                    $_SESSION['first_name'] = $user['first_name'];
+                    $_SESSION['last_name'] = $user['last_name'];
+                    $_SESSION['email'] = $user['email'];
+                    $_SESSION['role'] = $user['role'];
+                    $_SESSION['my_courses'] = $user['my_courses'];
+                    $_SESSION['logged_in'] = true;
+                    $_SESSION['courses_enrolled'] = [];
+
+                    $sql = "SELECT course_id FROM mycourses WHERE user_id = ?";
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute([$_SESSION['user_id']]);
+                    $results = $stmt->fetchAll();
+
+                    if ($results) {
+                        // Initialize the session array to hold the column values
+
+                        foreach ($results as $row) {
+                            // Replace 'column_name' with the name of the column you're interested in
+                            $_SESSION['courses_enrolled'][] = $row['course_id'];
+                        }
+                    }
+
+                    header("Location: index.php");
+                    exit();
+                } else {
+                    echo "<div class='message'>
+                              <p>Wrong Credentials</p>
+                              </div><br>";
+
+                    echo "<a href='login.php' class='btn btn-primary px-5'>Login Again</a>";
+                }
+            } else {
+            ?>
+                <H2>Welcome to Mystik Minds</h2>
+                <h3>Login Now</h3>
+                <input type="email" name="email" placeholder="Enter Email" class="box" required><br><br>
+                <input type="password" name="password" placeholder="Enter Password" class="box" required><br><br>
+                <input type="submit" name="login" value="login now" class="btn btn-primary">
+                <p>don't have an account? <a href="register.php">Register Now</a></p>
+            <?php
+            }
+            ?>
         </form>
 
     </div>
