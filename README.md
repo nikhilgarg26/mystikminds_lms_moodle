@@ -5,4 +5,5 @@
 - Change the `db_connection.php` file with your mySQL credentials.
 - Import the `mystik_minds.sql` file in your phpMyAdmin.
 - Login to Razorpay and generate the API keys in test mode.
+- Login to ipdata and generate API for location and API for current currency exchange rates in exchangerate-api.
 - Use the API key and Secret in `config.php` file.
