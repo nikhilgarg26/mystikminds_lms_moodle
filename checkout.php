@@ -16,10 +16,28 @@ if (in_array($course_id, $_SESSION['courses_enrolled'])) {
 }
 
 include "db_connection.php";
+include 'config.php';
+include 'currency_config.php';
 
 $stmt = $pdo->prepare("SELECT * FROM courses WHERE course_id = ?");
 $stmt->execute([$course_id]);
 $course = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$location_url = 'https://api.ipdata.co/?api-key=' . $ipdata . '=currency';
+$response = file_get_contents($location_url);
+
+$decodedData = json_decode($response, true)['currency'];
+
+if ($decodedData['code'] !== $displayCurrency) {
+    $displayCurrency = $decodedData['code'];
+
+    $exchange_url = 'https://v6.exchangerate-api.com/v6/' . $exchange . '/latest/INR';
+    $response = file_get_contents($exchange_url);
+
+    $conversions = json_decode($response, true)['conversion_rates'];
+
+    $course['price'] = intval($conversions[$displayCurrency] * $course['price']);
+}
 
 if ($course) {
     $title = $course['course_title'];

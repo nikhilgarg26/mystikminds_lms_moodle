@@ -206,6 +206,7 @@ include "db_connection.php";
                     }
 
                     header("Location: index.php");
+                    
                     exit();
                 } else {
                     echo "<div class='message'>

@@ -1,0 +1,3 @@
+<?php
+$ipdata = 'ff180234033f100d0adf3575c02871682559a75f44027102947ed7f4';
+$exchange = '009cdbbdbb7ca43c39ecf328';

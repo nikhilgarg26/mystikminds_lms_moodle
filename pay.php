@@ -17,33 +17,31 @@ $price = $_GET['price'];
 $title = $_GET['course'];
 $courseid = $_GET['courseid'];
 
+include 'currency_config.php';
+
+$location_url = 'https://api.ipdata.co/?api-key=' . $ipdata . '&fields=currency';
+$response = file_get_contents($location_url);
+$decodedData = json_decode($response, true)['currency'];
+$displayCurrency = $decodedData['code'];
+
 $orderData = [
     'receipt'         => '3456',
-    'amount'          => $price * 100, // 2000 rupees in paise
-    'currency'        => 'INR',
-    'payment_capture' => 1 // auto capture
+    'amount'          => $price * 100,
+    'currency'        => $displayCurrency,
+    'payment_capture' => 1
 ];
 
-$razorpayOrder = $api->order->create($orderData);
+try {
+    $razorpayOrder = $api->order->create($orderData);
 
-$razorpayOrderId = $razorpayOrder['id'];
+    $razorpayOrderId = $razorpayOrder['id'];
 
-$_SESSION['razorpay_order_id'] = $razorpayOrderId;
+    $_SESSION['razorpay_order_id'] = $razorpayOrderId;
 
-$displayAmount = $amount = $orderData['amount'];
+    $displayAmount = $amount = $orderData['amount'];
 
-if ($displayCurrency !== 'INR') {
-    $url = "https://api.fixer.io/latest?symbols=$displayCurrency&base=INR";
-    $exchange = json_decode(file_get_contents($url), true);
-
-    $displayAmount = $exchange['rates'][$displayCurrency] * $amount / 100;
+    require("automatic.php");
+} catch (Razorpay\Api\Errors\BadRequestError $e) {
+    echo 'Razorpay Error: ' . $e->getMessage();
+    // Handle the error according to your application's needs
 }
-
-if ($displayCurrency !== 'INR') {
-    $data['display_currency']  = $displayCurrency;
-    $data['display_amount']    = $displayAmount;
-}
-
-// $json = json_encode($data);
-
-require("automatic.php");

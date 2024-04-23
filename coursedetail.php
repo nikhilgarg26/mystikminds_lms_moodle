@@ -1,13 +1,12 @@
 <?php
 session_start();
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    // User is not logged in, redirect them to the login page
-    header('Location: login.php');
-    exit; // Don't forget to call exit after headers!
-}
+
+include 'config.php';
+include 'currency_config.php';
+
 $course_id = $_GET['courseid'];
 $purchased = false;
-if (in_array($course_id, $_SESSION['courses_enrolled'])) {
+if (isset($_SESSION['logged_in']) && in_array($course_id, $_SESSION['courses_enrolled'])) {
     $purchased = true;
 }
 
@@ -16,6 +15,24 @@ include 'db_connection.php';
 $stmt = $pdo->prepare("SELECT * FROM courses WHERE course_id = ?");
 $stmt->execute([$course_id]);
 $course = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$location_url = 'https://api.ipdata.co/?api-key=' . $ipdata . '=currency';
+$response = file_get_contents($location_url);
+
+$decodedData = json_decode($response, true)['currency'];
+
+if ($decodedData['code'] !== $displayCurrency) {
+    $displayCurrency = $decodedData['code'];
+
+    $exchange_url = 'https://v6.exchangerate-api.com/v6/' . $exchange . '/latest/INR';
+    $response = file_get_contents($exchange_url);
+
+    $conversions = json_decode($response, true)['conversion_rates'];
+
+    $course['price'] = intval($conversions[$displayCurrency] * $course['price']);
+}
+
+
 
 ?>
 <!DOCTYPE html>
@@ -176,7 +193,8 @@ $course = $stmt->fetch(PDO::FETCH_ASSOC);
         <div class="col-12 col-lg-4 mt-5 mt-lg-0">
             <div class="card mx-auto w-100" style="width: 18rem;">
                 <div class="card-body">
-                    <h5 class="card-title mb-4"><?php echo $course['price']; ?></h5>
+                    <h5 class="card-title mb-4"><?php echo $decodedData['symbol'];
+                                                echo $course['price']; ?></h5>
                     <p class="card-text mb-3">This course is carefully crafted for a broad audience in mechanical
                         engineering, including professionals, enthusiasts, and stakeholders looking to harness the power
                         of artificial intelligence without the need for intricate coding. </p>
